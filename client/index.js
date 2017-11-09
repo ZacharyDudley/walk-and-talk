@@ -20,7 +20,8 @@ navigator.mediaDevices.getUserMedia({audio: true})
 
 ac.suspend()
 
-/*  PRESS 'z' TO TALK  */
+/*  ---------------------------------------  */
+/*  HOLD 'z' TO TALK  */
 window.addEventListener('keydown', event => {
   if (event.keyCode === 90) {
     ac.resume()
@@ -32,7 +33,18 @@ window.addEventListener('keyup', event => {
   }
 })
 
-
+/*  HOLD DOWN BUTTON TO TALK  */
+document.addEventListener('mousedown', event => {
+  if (event.target === buttonTalk) {
+    ac.resume()
+  }
+})
+document.addEventListener('mouseup', event => {
+  if (event.target === buttonTalk) {
+    ac.suspend()
+  }
+})
+/*  ---------------------------------------  */
 
 //SOCKETS
 socket.on('connect', () => {
