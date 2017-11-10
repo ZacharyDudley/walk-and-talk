@@ -17,8 +17,9 @@ io.on('connect', socket => {
   socket.emit('greet', greet)
 
 
-  socket.on('response', response => {
-    console.log(response, socket.id)
+  socket.on('talk', blob => {
+    console.log(blob)
+    socket.broadcast.emit('talk', blob)
   })
 })
 

@@ -4,21 +4,58 @@ const buttonTalk = document.getElementById('talk')
 
 let AudioContext = window.AudioContext || window.webkitAudioContext
 let ac = new AudioContext()
-let gainNode = ac.createGain()
+let gn = ac.createGain()
 let source
+let chunks = []
+// var mediaRecorder
 
-var gain = 2
-gainNode.gain.value = gain
+gn.gain.value = 2
 
-navigator.mediaDevices.getUserMedia({audio: true})
-  .then(stream => {
-    source = ac.createMediaStreamSource(stream)
-    source.connect(gainNode)
-    gainNode.connect(ac.destination)
+const playback = noise => {
+  source = ac.createMediaStreamSource(noise)
+  source.connect(gn)
+  gn.connect(ac.destination)
+  // ac.start()
+}
+
+const success = stream => {
+  this.mediaRecorder = new MediaRecorder(stream)
+
+
+}
+
+this.mediaRecorder.ondataavailable = event => {
+  console.log('IN DATA AVAIL')
+  chunks.push(event.data)
+  if (chunks.length >= 700) {
+    this.sendData(chunks)
+    chunks = []
+  }
+}
+
+this.mediaRecorder.sendData = buffer => {
+  let blob = new Blob(buffer, {type: 'audio/wav'})
+  socket.emit('talk', blob)
+}
+
+//SOCKETS
+socket.on('connect', () => {
+  console.log('THIS IS CLIENT: ', socket.id)
+
+  navigator.mediaDevices.getUserMedia({audio: true})
+    .then(res => {
+      playback(res)
+      success(res)
+    })
+    .catch(err => console.error('ERROR: ', err))
+
+  socket.on('call', call => {
+    console.log(call)
+    let response = 'client to server'
+    socket.emit('response', response)
   })
-  .catch(err => console.error('ERROR: ', err))
+})
 
-ac.suspend()
 
 /*  ---------------------------------------  */
 /*  HOLD 'z' TO TALK  */
@@ -46,14 +83,3 @@ document.addEventListener('mouseup', event => {
 })
 /*  ---------------------------------------  */
 
-//SOCKETS
-socket.on('connect', () => {
-  console.log('THIS IS CLIENT: ', socket.id)
-
-
-  socket.on('call', call => {
-    console.log(call)
-    let response = 'client to server'
-    socket.emit('response', response)
-  })
-})
